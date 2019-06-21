@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="card">
+          <div class="card-header">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Train Name </th>
+                  <th>Destination </th>
+                  <th>Frequency (min) </th>
+                  <th>Next Arrival </th>
+                  <th>Minutes Away </th>
+                </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+            </table>
+
+          </div>
+          <div class="card-body">
+
+            <!-- Sign-up Form (note the various input "types")-->
+            <form>
+              <div class="form-group row">
+                <label for="name-input">name:</label>
+                <input class="form-control" id="name-input" type="text">
+              </div>
+              <div class="form-group row">
+                <label for="destination-input">destination:</label>
+                <input class="form-control" id="destination-input" type="text">
+              </div>
+
+              <div class="form-group row">
+                <label for="frequency-input">frequency:</label>
+                <input class="form-control" id="frequency-input" type="text">
+              </div>
+
+              <div class="form-group row">
+                <label for="firsttime-input">firsttime (HH:mm Miltary Time):</label>
+                <input class="form-control" id="firsttime-input" type="text">
+              </div>
+
+              <button class="btn btn-primary" id="add-train" type="submit">Submit</button>
+            </form>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Added Moment JS -->
+<script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.0.4/firebase-database.js"></script>
+
+  <script>
+    var config = {
+      apiKey: "AIzaSyCSzJEXEZoNYabxOiulGFgNGl5xqm33c4M",
+      authDomain: "train-schedule-109a3.firebaseapp.com",
+      databaseURL: "https://train-schedule-109a3.firebaseio.com",
+      projectId: "train-schedule-109a3",
+      storageBucket: "train-schedule-109a3.appspot.com",
+      messagingSenderId: "1029091296158",
+      appId: "1:1029091296158:web:fcf37fc20421b085"
+    };
+
+    firebase.initializeApp(config);
+
+    var dataRef = firebase.database();
+
+    // Initial Values
+    var name = "";
+    var email = "";
+    var age = 0;
+    var comment = "";
+
+    // Capture Button Click
+    $("#add-train").on("click", function (event) {
+      event.preventDefault();
+
+      // YOUR TASK!!!
+      // Code in the logic for storing and retrieving the most recent user.
+      // Don't forget to provide initial data to your Firebase database.
+      var inputname = $("#name-input").val().trim();
+      var inputdestination = $("#destination-input").val().trim();
+      var inputfrequency = $("#frequency-input").val().trim();
+      var inputfirsttime = $("#firsttime-input").val().trim();
+
+
+      // Code for the push
+      dataRef.ref().push({
+
+        name: inputname,
+        frequency: inputfrequency,
+        destination: inputdestination,
+        firsttime: inputfirsttime
+
+      });
+   
+
+      inputname.empty()
+      inputdestination.empty()
+      inputfrequency.empty()
+      inputfirsttime.empty()
+    });
+
+    // Firebase watcher + initial loader HINT: This code behaves similarly to .on("value")
+    dataRef.ref().on("child_added", function (childSnapshot) {
+
+      // Log everything that's coming out of snapshot
+      console.log(childSnapshot.val().name);
+      console.log(childSnapshot.val().frequency);
+      console.log(childSnapshot.val().destination);
+      console.log(childSnapshot.val().firsttime);
+
+      var tr = $("<tr>");
+
+
+      tr.append("<td>" + childSnapshot.val().name)
+      tr.append("<td>" + childSnapshot.val().destination)
+      tr.append("<td>" + childSnapshot.val().frequency)
+
+
+
+ // Assumptions
+ var tFrequency = childSnapshot.val().frequency;
+
+// Time is 3:30 AM
+var firstTime =  childSnapshot.val().firsttime;
+
+ 
+var userInputTime= moment(firstTime, "HH:mm");
+
+console.log( userInputTime);
+
+// Current Time
+var currentTime = moment();
+
+ 
+
+// Difference between the times
+var diffTime = currentTime.diff(moment(userInputTime), "minutes");
+
+console.log("DIFFERENCE IN TIME: " + diffTime);
+
+// Time apart (remainder)
+var tRemainder = diffTime % tFrequency;
+console.log(tRemainder);
+
+// Minute Until Train
+var minutesAway = tFrequency - tRemainder;
+console.log("MINUTES TILL TRAIN: " + minutesAway );
+
+// Next Train
+var nextTrain = moment().add(minutesAway , "minutes");
+console.log("ARRIVAL TIME: " + moment(nextTrain).format("hh:mm a"));
+
+
+
+if(diffTime>0)
+{
+   tr.append("<td>" + moment(nextTrain).format("hh:mm a"))
+
+  tr.append("<td>" +  minutesAway)
+}
+else
+{
+  tr.append("<td>" + moment(userInputTime).format("hh:mm a"))
+
+tr.append("<td>" + diffTime * -1 )
+
+} 
+
+      // full list of items to the well
+      $("tbody").append(tr)
+
+
+
+
+      // Handle the errors
+    }, function (errorObject) {
+      console.log("Errors handled: " + errorObject.code);
+    });
+
+
+  </script>
+</body>
+
+</html>
